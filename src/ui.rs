@@ -4,6 +4,7 @@ use crate::app::GemaLauncherApp;
 use log::info;
 use rfd::FileDialog;
 use eframe::App;
+use winit::window::Icon;
 
 impl App for GemaLauncherApp {
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
