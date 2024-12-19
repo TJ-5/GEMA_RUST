@@ -6,7 +6,10 @@ use rfd::FileDialog;
 use eframe::App;
 
 
+
+
 impl App for GemaLauncherApp {
+
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
 
         let dropped_files = ctx.input(|input| input.raw.dropped_files.clone());
