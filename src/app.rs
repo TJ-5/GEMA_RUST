@@ -133,7 +133,7 @@ impl GemaLauncherApp {
                 match result {
                     Ok(db_artist) => {
                         // Replace spaces with underscores in the artist name
-                        let formatted_artist = db_artist.replace(".", "_");
+                        let formatted_artist = db_artist.replace("  ", "_");
                         info!(
                             "Track '{}' gefunden, Künstler von '{}' zu '{}' aktualisiert", 
                             track.titel, 
