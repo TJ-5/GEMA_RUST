@@ -1,0 +1,44 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - "v*" # Löst den Workflow aus, wenn ein Tag wie "v1.0" gepusht wird.
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable # Rust stable verwenden
+          override: true
+
+      - name: Build release
+        run: cargo build --release
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: gema_launcher
+          path: target/release/gema_launcher
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: gema_launcher
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: target/release/gema_launcher
