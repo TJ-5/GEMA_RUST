@@ -1,0 +1,9 @@
+/Users/tomjoeres/Documents/GEMA/v.0.1.2 copy/GEMA_Launcher/target/x86_64-pc-windows-gnu/release/deps/libaccesskit_winit-e70f803b4317e16c.rmeta: /Users/tomjoeres/.cargo/registry/src/index.crates.io-6f17d22bba15001f/accesskit_winit-0.14.4/src/lib.rs /Users/tomjoeres/.cargo/registry/src/index.crates.io-6f17d22bba15001f/accesskit_winit-0.14.4/src/platform_impl/mod.rs /Users/tomjoeres/.cargo/registry/src/index.crates.io-6f17d22bba15001f/accesskit_winit-0.14.4/src/platform_impl/windows.rs
+
+/Users/tomjoeres/Documents/GEMA/v.0.1.2 copy/GEMA_Launcher/target/x86_64-pc-windows-gnu/release/deps/libaccesskit_winit-e70f803b4317e16c.rlib: /Users/tomjoeres/.cargo/registry/src/index.crates.io-6f17d22bba15001f/accesskit_winit-0.14.4/src/lib.rs /Users/tomjoeres/.cargo/registry/src/index.crates.io-6f17d22bba15001f/accesskit_winit-0.14.4/src/platform_impl/mod.rs /Users/tomjoeres/.cargo/registry/src/index.crates.io-6f17d22bba15001f/accesskit_winit-0.14.4/src/platform_impl/windows.rs
+
+/Users/tomjoeres/Documents/GEMA/v.0.1.2 copy/GEMA_Launcher/target/x86_64-pc-windows-gnu/release/deps/accesskit_winit-e70f803b4317e16c.d: /Users/tomjoeres/.cargo/registry/src/index.crates.io-6f17d22bba15001f/accesskit_winit-0.14.4/src/lib.rs /Users/tomjoeres/.cargo/registry/src/index.crates.io-6f17d22bba15001f/accesskit_winit-0.14.4/src/platform_impl/mod.rs /Users/tomjoeres/.cargo/registry/src/index.crates.io-6f17d22bba15001f/accesskit_winit-0.14.4/src/platform_impl/windows.rs
+
+/Users/tomjoeres/.cargo/registry/src/index.crates.io-6f17d22bba15001f/accesskit_winit-0.14.4/src/lib.rs:
+/Users/tomjoeres/.cargo/registry/src/index.crates.io-6f17d22bba15001f/accesskit_winit-0.14.4/src/platform_impl/mod.rs:
+/Users/tomjoeres/.cargo/registry/src/index.crates.io-6f17d22bba15001f/accesskit_winit-0.14.4/src/platform_impl/windows.rs:

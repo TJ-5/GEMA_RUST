@@ -1,0 +1,10 @@
+/Users/tomjoeres/Documents/GEMA/v.0.1.2 copy/GEMA_Launcher/target/x86_64-pc-windows-gnu/release/deps/libarboard-83da62b60d05846a.rmeta: /Users/tomjoeres/.cargo/registry/src/index.crates.io-6f17d22bba15001f/arboard-3.4.1/src/lib.rs /Users/tomjoeres/.cargo/registry/src/index.crates.io-6f17d22bba15001f/arboard-3.4.1/src/common.rs /Users/tomjoeres/.cargo/registry/src/index.crates.io-6f17d22bba15001f/arboard-3.4.1/src/platform/mod.rs /Users/tomjoeres/.cargo/registry/src/index.crates.io-6f17d22bba15001f/arboard-3.4.1/src/platform/windows.rs
+
+/Users/tomjoeres/Documents/GEMA/v.0.1.2 copy/GEMA_Launcher/target/x86_64-pc-windows-gnu/release/deps/libarboard-83da62b60d05846a.rlib: /Users/tomjoeres/.cargo/registry/src/index.crates.io-6f17d22bba15001f/arboard-3.4.1/src/lib.rs /Users/tomjoeres/.cargo/registry/src/index.crates.io-6f17d22bba15001f/arboard-3.4.1/src/common.rs /Users/tomjoeres/.cargo/registry/src/index.crates.io-6f17d22bba15001f/arboard-3.4.1/src/platform/mod.rs /Users/tomjoeres/.cargo/registry/src/index.crates.io-6f17d22bba15001f/arboard-3.4.1/src/platform/windows.rs
+
+/Users/tomjoeres/Documents/GEMA/v.0.1.2 copy/GEMA_Launcher/target/x86_64-pc-windows-gnu/release/deps/arboard-83da62b60d05846a.d: /Users/tomjoeres/.cargo/registry/src/index.crates.io-6f17d22bba15001f/arboard-3.4.1/src/lib.rs /Users/tomjoeres/.cargo/registry/src/index.crates.io-6f17d22bba15001f/arboard-3.4.1/src/common.rs /Users/tomjoeres/.cargo/registry/src/index.crates.io-6f17d22bba15001f/arboard-3.4.1/src/platform/mod.rs /Users/tomjoeres/.cargo/registry/src/index.crates.io-6f17d22bba15001f/arboard-3.4.1/src/platform/windows.rs
+
+/Users/tomjoeres/.cargo/registry/src/index.crates.io-6f17d22bba15001f/arboard-3.4.1/src/lib.rs:
+/Users/tomjoeres/.cargo/registry/src/index.crates.io-6f17d22bba15001f/arboard-3.4.1/src/common.rs:
+/Users/tomjoeres/.cargo/registry/src/index.crates.io-6f17d22bba15001f/arboard-3.4.1/src/platform/mod.rs:
+/Users/tomjoeres/.cargo/registry/src/index.crates.io-6f17d22bba15001f/arboard-3.4.1/src/platform/windows.rs:
