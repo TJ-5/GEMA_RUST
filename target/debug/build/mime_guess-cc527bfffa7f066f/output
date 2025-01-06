@@ -1,1 +1,0 @@
-cargo:rustc-env=MIME_TYPES_GENERATED_PATH=/Users/tomjoeres/Documents/GEMA/v.0.2.0/GEMA_Launcher/target/debug/build/mime_guess-cc527bfffa7f066f/out/mime_types_generated.rs
