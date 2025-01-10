@@ -3,42 +3,32 @@ name: Build and Release
 on:
   push:
     tags:
-      - "v*" # Löst den Workflow aus, wenn ein Tag wie "v1.0" gepusht wird.
+      - 'v*' # Trigger on version tags like v1.0.0
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable # Rust stable verwenden
-          override: true
+          toolchain: stable
 
-      - name: Build release
-        run: cargo build --release
+      - name: Build for Windows
+        run: |
+          rustup target add x86_64-pc-windows-gnu
+          cargo build --release --target x86_64-pc-windows-gnu
 
-      - name: Upload build artifact
+      - name: Package and Upload
+        run: |
+          zip -r your_program_windows.zip target/x86_64-pc-windows-gnu/release/your_program.exe assets/
+          mkdir -p dist
+          mv your_program_windows.zip dist/
         uses: actions/upload-artifact@v3
         with:
-          name: gema_launcher
-          path: target/release/gema_launcher
-
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Download build artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: gema_launcher
-
-      - name: Create GitHub release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: target/release/gema_launcher
+          name: release-package
+          path: dist/
