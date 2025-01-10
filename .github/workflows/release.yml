@@ -3,32 +3,40 @@ name: Build and Release
 on:
   push:
     tags:
-      - 'v*' # Trigger on version tags like v1.0.0
+      - 'v*' # Trigger workflow on version tags like v1.0.0
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
+      # Checkout the code from the repository
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      # Set up Rust
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
 
+      # Build the executable for Windows
       - name: Build for Windows
         run: |
           rustup target add x86_64-pc-windows-gnu
           cargo build --release --target x86_64-pc-windows-gnu
 
-      - name: Package and Upload
+      # Package the executable and assets into a zip file
+      - name: Package and zip files
         run: |
           zip -r your_program_windows.zip target/x86_64-pc-windows-gnu/release/your_program.exe assets/
           mkdir -p dist
           mv your_program_windows.zip dist/
-        uses: actions/upload-artifact@v3
+
+      # Create a GitHub release and upload the zip file
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
         with:
-          name: release-package
-          path: dist/
+          files: dist/your_program_windows.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
