@@ -25,3 +25,6 @@ rusqlite = { version = "0.32.1", features = ["bundled"] }
 [target.x86_64-pc-windows-gnu]
 linker = "zig cc"
 rustflags = ["-C", "target-feature=+crt-static"]
+
+[build]
+target = "x86_64-pc-windows-gnu"
