@@ -3,7 +3,7 @@ name: Build and Release
 on:
   push:
     tags:
-      - 'v*' # Trigger workflow on version tags like v1.0.0
+      - 'v*'
 
 jobs:
   build:
@@ -14,19 +14,25 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Step 2: Set up Rust
+      # Step 2: Install mingw-w64 and dependencies
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mingw-w64
+
+      # Step 3: Set up Rust and target
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
 
-      # Step 3: Build the Rust program for Windows
+      # Step 4: Build for Windows
       - name: Build for Windows
         run: |
           rustup target add x86_64-pc-windows-gnu
           cargo build --release --target x86_64-pc-windows-gnu
 
-      # Step 4: Copy assets and package everything into a zip file
+      # Step 5: Package the executable and assets
       - name: Package the executable and assets
         run: |
           mkdir -p dist
@@ -35,7 +41,7 @@ jobs:
           zip -r GEMA_Launcher_windows.zip dist/
           mv GEMA_Launcher_windows.zip dist/
 
-      # Step 5: Create a GitHub release and upload the zip file
+      # Step 6: Create GitHub Release
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
