@@ -32,14 +32,14 @@ jobs:
         run: |
           rustup target add x86_64-pc-windows-gnu
           cargo build --release --target x86_64-pc-windows-gnu
-
+      # cp -r src/assets dist/
       # Step 5: Package the executable and assets
       - name: Package the executable and assets
         run: |
           mkdir -p dist
           # Adjust paths for your folder structure
           cp target/x86_64-pc-windows-gnu/release/GEMA_Launcher.exe dist/
-          cp -r src/assets dist/
+          
           cp src/assets/labelcodes.json dist/
           cp src/assets/my_database.db dist/
           zip -r GEMA_Launcher_windows.zip dist/
