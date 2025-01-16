@@ -31,8 +31,8 @@ jobs:
       - name: Build for Windows
         run: |
           rustup target add x86_64-pc-windows-gnu
+          brew install mingw-w64
           cargo build --release --target x86_64-pc-windows-gnu
-          cargo build --release --target x86_64-pc-windows-msvc
 
       # Step 5: Package the executable and assets
       - name: Package the executable and assets
