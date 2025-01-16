@@ -39,6 +39,8 @@ jobs:
           # Adjust paths for your folder structure
           cp target/x86_64-pc-windows-gnu/release/GEMA_Launcher.exe dist/
           cp -r src/assets dist/
+          cp src/assets/labelcodes.json dist/
+          cp src/assets/my_database.db dist/
           zip -r GEMA_Launcher_windows.zip dist/
           mv GEMA_Launcher_windows.zip dist/
 
