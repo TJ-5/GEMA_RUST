@@ -1,6 +1,9 @@
-# GEMA Launcher
+# GEMA Launcher <img width="50" align="right" alt="logo" src="https://github.com/user-attachments/assets/fb76abad-1aa6-4409-b793-1525dac1d823" /> 
 
-GEMA Launcher ist ein Hilfsprogramm zum Verarbeiten von Audiodateien und deren Metadaten, um GEMA-relevante Informationen effizient zusammenzustellen.
+GEMA Launcher ist ein Hilfsprogramm zum Verarbeiten von Audiodateien und deren Metadaten, um GEMA-relevante Informationen effizient zusammenzustellen. 
+
+
+<img width="934" alt="Screenshot 2025-01-16 at 11 47 30" src="https://github.com/user-attachments/assets/8b70f325-f844-425d-a837-2dc25f130198" />
 
 ## Funktionen
 
@@ -26,3 +29,5 @@ GEMA Launcher ist ein Hilfsprogramm zum Verarbeiten von Audiodateien und deren M
 GEMA Launcher unterstützt dabei, aus einer Sammlung von Audiodateien schnell und effizient eine sauber aufbereitete CSV-Liste mit allen benötigten Musikmetadaten zu erstellen, um den GEMA-Meldeaufwand erheblich zu reduzieren.
 
 **Download**: [https://github.com/TJ-5/GEMA_RUST/Release/v.0.2.0](https://github.com/TJ-5/GEMA_RUST/releases/tag/v0.2.0)
+
+
