@@ -21,7 +21,7 @@ impl Default for GemaLauncherApp {
         let mut app = Self {
             filenames: Vec::new(),
             error_messages: Vec::new(),
-            label_dict: load_labelcodes("src/assets/labelcodes.json").unwrap_or_default(),
+            label_dict: load_labelcodes("assets/labelcodes.json").unwrap_or_default(),
             selected_files: Vec::new(),
             tracks_per_file: HashMap::new(),
             export_path: None,
@@ -29,7 +29,7 @@ impl Default for GemaLauncherApp {
         };
 
         // Verbindung zur SQLite-Datenbank herstellen
-        if let Err(e) = app.connect_to_database("src/assets/my_database.db") {
+        if let Err(e) = app.connect_to_database("assets/my_database.db") {
             app.error_messages.push(format!("Datenbank konnte nicht geladen werden: {}", e));
         }
         app

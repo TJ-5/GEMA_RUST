@@ -20,7 +20,7 @@ fn main() -> Result<()> {
     env_logger::init();
     info!("GEMA_Launcher startet");
 
-    let image = image::open("../GEMA_Launcher/src/assets/logo.png").expect("Kann 'logo.png' nicht öffnen");
+    let image = image::open("assets/logo.png").expect("Kann 'logo.png' nicht öffnen");
     let image = image.to_rgba8();
     let (width, height) = image.dimensions();
     let icon_data = IconData {
