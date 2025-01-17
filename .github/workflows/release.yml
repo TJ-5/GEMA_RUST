@@ -33,8 +33,6 @@ jobs:
           rustup target add x86_64-pc-windows-gnu
           cargo build --release --target x86_64-pc-windows-gnu
       
-      # cp src/assets/labelcodes.json dist/
-      # cp src/assets/my_database.db dist/
       # Step 5: Package the executable and assets
       - name: Package the executable and assets
         run: |
