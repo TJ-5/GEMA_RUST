@@ -47,6 +47,8 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          files: dist/GEMA_Launcher_windows.zip
+          files: GEMA_Launcher/GEMA_Launcher_windows.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+          # dist/GEMA_Launcher_windows.zip
