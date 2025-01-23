@@ -4,18 +4,12 @@ use log::info;
 use env_logger;
 use anyhow::Result;
 
-//
-
-//
-
 mod app;
 mod ui;
 mod parser;
 mod model;
 mod labelcodes;
 mod export;
-
-
 
 fn main() -> Result<()> {
     env_logger::init();
