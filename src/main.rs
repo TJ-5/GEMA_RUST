@@ -1,5 +1,4 @@
-#![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
-
+#![windows_subsystem = "windows"]
 use eframe::{self, NativeOptions, CreationContext, IconData};
 use log::info;
 use env_logger;
