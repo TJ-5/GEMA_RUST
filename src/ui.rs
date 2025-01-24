@@ -28,7 +28,7 @@ impl App for GemaLauncherApp {
                         let _ = self.export_all_csv();
                     }
 
-                    if ui.button("Beenden").clicked() {
+                    if ui.button("Beenden").clicked() { 
                         frame.close()
                     }
                 });
