@@ -5,7 +5,6 @@ use std::collections::HashMap;
 use crate::labelcodes::load_labelcodes;
 use crate::model::TrackInfo;
 
-/// Hauptanwendungsstruktur
 pub struct GemaLauncherApp {
     pub filenames: Vec<String>,
     pub error_messages: Vec<String>,
@@ -28,7 +27,6 @@ impl Default for GemaLauncherApp {
             db_connection: None,
         };
 
-        // Verbindung zur SQLite-Datenbank herstellen
         if let Err(e) = app.connect_to_database("assets/my_database.db") {
             app.error_messages.push(format!("Datenbank konnte nicht geladen werden: {}", e));
         }
