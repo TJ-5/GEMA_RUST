@@ -1,4 +1,3 @@
-#![windows_subsystem = "windows"]
 use eframe::{self, NativeOptions, CreationContext, IconData};
 use log::info;
 use env_logger;
