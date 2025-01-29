@@ -48,8 +48,8 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ github.ref_name }}
-          #release_name: Release ${{ github.ref_name }}
+          name: "Release ${{ github.ref_name }}"
           files: GEMA_Launcher/GEMA_Launcher_windows.zip
-          #overwrite: true  # if you need to overwrite the same tag
+          # If you want to remove artifacts with the same name and re-upload:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
