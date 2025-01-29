@@ -1,9 +1,10 @@
-// src/ui.rs
 use eframe::egui;
+use std::process::Command;
 use crate::app::GemaLauncherApp;
 use log::info;
 use rfd::FileDialog;
 use eframe::App;
+use webbrowser;
 
 
 impl App for GemaLauncherApp {
@@ -34,7 +35,25 @@ impl App for GemaLauncherApp {
                 });
 
                 ui.menu_button("Hilfe", |ui| {
-                    ui.label("Tom fragen :)");
+                    if ui.button("Welcome").clicked() {
+                        let _ = webbrowser::open("https://github.com/TJ-5/GEMA_RUST/blob/main/README.pdf"); 
+                    }
+                    if ui.button("Mail").clicked() {
+                        #[cfg(target_os = "windows")]
+                        let _ = Command::new("cmd")
+                            .args(&["/C", "start", "mailto:tom@example.com?subject=Hilfe&body=Hallo%20Tom"])
+                            .spawn();
+                
+                        #[cfg(target_os = "macos")]
+                        let _ = Command::new("open")
+                            .arg("mailto:tom@example.com?subject=Hilfe&body=Hallo%20Tom")
+                            .spawn();
+                
+                        #[cfg(target_os = "linux")]
+                        let _ = Command::new("xdg-email")
+                            .args(&["--subject", "Hilfe", "--body", "Hallo Tom,", "tom@example.com"])
+                            .spawn();
+                    }
                 });
             });
         });
