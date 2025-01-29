@@ -10,34 +10,29 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout the repository
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Step 2: Install mingw-w64 and dependencies for cross-compilation
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y mingw-w64
 
-      # Step 3: Set up Rust and the Windows target
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
 
-      
-      # Step 4: Build for Windows
       - name: Build for Windows
         run: |
           rustup target add x86_64-pc-windows-gnu
+          cargo clean  # Ensure no cached builds
           cargo build --release --target x86_64-pc-windows-gnu
-      
-      # Step 5: Package the executable and assets
+
       - name: Package the executable and assets
         run: |
+          rm -rf GEMA_Launcher GEMA_Launcher_windows.zip  # Remove old files
           mkdir -p GEMA_Launcher
-          # Adjust paths for your folder structure
           cp target/x86_64-pc-windows-gnu/release/GEMA_Launcher.exe GEMA_Launcher/
           cp -r src/assets GEMA_Launcher/
           cp README.pdf GEMA_Launcher/
@@ -45,12 +40,25 @@ jobs:
           zip -r GEMA_Launcher_windows.zip GEMA_Launcher/
           mv GEMA_Launcher_windows.zip GEMA_Launcher/
 
-      # Step 6: Create a GitHub Release and upload the ZIP file
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: GEMA_Launcher/GEMA_Launcher_windows.zip
+      - name: Delete existing release (if any)
+        run: |
+          gh release delete ${{ github.ref_name }} --yes || true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-          # dist/GEMA_Launcher_windows.zip
+      - name: Delete old tag (if any)
+        run: |
+          git push --delete origin ${{ github.ref_name }} || true
+
+      - name: Recreate tag
+        run: |
+          git tag -f ${{ github.ref_name }}
+          git push origin ${{ github.ref_name }} --force
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: GEMA_Launcher/GEMA_Launcher_windows.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
