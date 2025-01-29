@@ -1,4 +1,4 @@
-#![windows_subsystem = "windows"]
+#![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
 use eframe::{self, NativeOptions, CreationContext, IconData};
 use log::info;
 use env_logger;
@@ -12,10 +12,13 @@ mod labelcodes;
 mod export;
 
 fn main() -> Result<()> {
+
     env_logger::init();
     info!("GEMA_Launcher startet");
 
-    let image = image::open("assets/logo.png").expect("Kann 'logo.png' nicht öffnen");
+
+    //src weg machen im path
+    let image = image::open("src/assets/logo.png").expect("Kann 'logo.png' nicht öffnen");
     let image = image.to_rgba8();
     let (width, height) = image.dimensions();
     let icon_data = IconData {
