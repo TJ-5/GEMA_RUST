@@ -20,24 +20,22 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y mingw-w64
 
-      # Step 3: Set up Rust and the Windows target
+      # Step 3: Set up Rust
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
 
-      
       # Step 4: Build for Windows
       - name: Build for Windows
         run: |
           rustup target add x86_64-pc-windows-gnu
           cargo build --release --target x86_64-pc-windows-gnu
-      
+
       # Step 5: Package the executable and assets
       - name: Package the executable and assets
         run: |
           mkdir -p GEMA_Launcher
-          # Adjust paths for your folder structure
           cp target/x86_64-pc-windows-gnu/release/GEMA_Launcher.exe GEMA_Launcher/
           cp -r src/assets GEMA_Launcher/
           cp README.pdf GEMA_Launcher/
@@ -49,8 +47,8 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
           files: GEMA_Launcher/GEMA_Launcher_windows.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-          # dist/GEMA_Launcher_windows.zip
