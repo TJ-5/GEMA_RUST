@@ -22,7 +22,7 @@ anyhow = "1"
 #rusqlite = "0.32.1"
 rusqlite = { version = "0.32.1", features = ["bundled"] }
 webbrowser = "0.8"
-winres = "0.1"
+#winres = "0.1"
 
 [target.x86_64-pc-windows-gnu]
 linker = "zig cc"
