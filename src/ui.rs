@@ -41,12 +41,12 @@ impl App for GemaLauncherApp {
                     if ui.button("Mail").clicked() {
                         #[cfg(target_os = "windows")]
                         let _ = Command::new("cmd")
-                            .args(&["/C", "start", "mailto:tom@example.com?subject=Hilfe&body=Hallo%20Tom"])
+                            .args(&["/C", "start", "mailto:tom.joeres@filmpool.de?subject=Hilfe&body=Hallo%20Tom"])
                             .spawn();
                 
                         #[cfg(target_os = "macos")]
                         let _ = Command::new("open")
-                            .arg("mailto:tom@example.com?subject=Hilfe&body=Hallo%20Tom")
+                            .arg("mailto:tom.joeres@filmpool.de?subject=Hilfe&body=Hallo%20Tom")
                             .spawn();
                 
                         #[cfg(target_os = "linux")]
