@@ -15,6 +15,15 @@ pub struct GemaLauncherApp {
     pub db_connection: Option<Connection>,
 }
 
+pub fn clean_kuenstler_names(raw_kuenstler: &str) -> String {
+    raw_kuenstler
+        .split('/') // Trennen nach "/"
+        .map(|entry| entry.split(" - ").next().unwrap_or("").trim()) // Alles nach " - " ignorieren
+        .filter(|s| !s.is_empty()) // Leere Strings entfernen
+        .collect::<Vec<&str>>() // In eine Liste umwandeln
+        .join("_ ") // Mit ", " zusammenfügen
+}
+
 impl Default for GemaLauncherApp {
     fn default() -> Self {
         let mut app = Self {
@@ -95,6 +104,7 @@ impl GemaLauncherApp {
         self.apply_database_info();
         Ok(())
     }
+    
 
     fn apply_database_info(&mut self) {
         let Some(conn) = self.db_connection.as_ref() else {

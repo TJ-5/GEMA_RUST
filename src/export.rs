@@ -1,11 +1,13 @@
 // src/export.rs
 use crate::app::GemaLauncherApp;
+use crate::app::clean_kuenstler_names;
 use anyhow::Result;
 use log::{error, info};
 use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use rfd::FileDialog;
+
 
 impl GemaLauncherApp {
     pub fn export_all_csv(&mut self) -> Result<()> {
@@ -57,7 +59,8 @@ impl GemaLauncherApp {
                         if let Err(e) = writeln!(f, "{},{},{},{},{}",
                             track.index,
                             track.titel,
-                            track.kuenstler,
+                            clean_kuenstler_names(&track.kuenstler),
+                            //track.kuenstler,
                             duration,
                             track.label_code) {
                             let error_msg = format!("CSV-Fehler: {}", e);
