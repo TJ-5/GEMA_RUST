@@ -55,12 +55,13 @@ impl GemaLauncherApp {
                     // CSV Daten
                     for track in tracks {
                         let duration = track.duration.map_or(String::new(), |d| self.format_duration(d));
+                        let formatted_duration = format!("' {}", duration);
                         if let Err(e) = writeln!(f, "{},{},{},{},{}",
                             track.index,
                             track.titel,
                             track.kuenstler,
                             //track.kuenstler,
-                            duration,
+                            formatted_duration,
                             track.label_code) {
                             let error_msg = format!("CSV-Fehler: {}", e);
                             self.error_messages.push(error_msg.clone());

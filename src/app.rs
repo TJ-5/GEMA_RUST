@@ -127,8 +127,8 @@ impl GemaLauncherApp {
                 info!("Attempting to match track: '{}'", track.titel);
                 let result = stmt.query_row(params![&track.index], |row| {
                     Ok((
-                        row.get::<_, String>(0)?,  // Titel
-                        row.get::<_, String>(1)?,  // Künstler
+                        row.get::<_, String>(1)?,  // Titel
+                        row.get::<_, String>(0)?,  // Künstler
                         row.get::<_, String>(2)?   // Labelcode
                     ))
                 });
