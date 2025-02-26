@@ -1,6 +1,5 @@
 // src/export.rs
 use crate::app::GemaLauncherApp;
-use crate::app::clean_kuenstler_names;
 use anyhow::Result;
 use log::{error, info};
 use std::fs::File;
@@ -59,7 +58,7 @@ impl GemaLauncherApp {
                         if let Err(e) = writeln!(f, "{},{},{},{},{}",
                             track.index,
                             track.titel,
-                            clean_kuenstler_names(&track.kuenstler),
+                            track.kuenstler,
                             //track.kuenstler,
                             duration,
                             track.label_code) {

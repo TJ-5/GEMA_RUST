@@ -2,7 +2,7 @@ use anyhow::{Context, Result};
 use log::{info, error};
 use std::collections::HashMap;
 use std::fs::File;
-use std::io::{BufReader};
+use std::io::BufReader;
 use std::path::Path;
 
 pub fn load_labelcodes(path: &str) -> Result<HashMap<String, String>> {

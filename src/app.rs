@@ -15,15 +15,6 @@ pub struct GemaLauncherApp {
     pub db_connection: Option<Connection>,
 }
 
-pub fn clean_kuenstler_names(raw_kuenstler: &str) -> String {
-    raw_kuenstler
-        .split('/') // Trennen nach "/"
-        .map(|entry| entry.split(" - ").next().unwrap_or("").trim()) // Alles nach " - " ignorieren
-        .filter(|s| !s.is_empty()) // Leere Strings entfernen
-        .collect::<Vec<&str>>() // In eine Liste umwandeln
-        .join("_ ") // Mit ", " zusammenfügen
-}
-
 impl Default for GemaLauncherApp {
     fn default() -> Self {
         let mut app = Self {
@@ -114,9 +105,9 @@ impl GemaLauncherApp {
     
         // Prepare the query once
         let query = r#"
-            SELECT kuenstler
+            SELECT kuenstler, titel, labelcode
             FROM my_table
-            WHERE LOWER(REPLACE(titel, '_', '')) = LOWER(REPLACE(?1, '_', ''))
+            WHERE LOWER("index") = LOWER(?1)
             LIMIT 1
         "#;
     
@@ -134,30 +125,34 @@ impl GemaLauncherApp {
         for (_filename, tracks) in self.tracks_per_file.iter_mut() {
             for track in tracks.iter_mut() {
                 info!("Attempting to match track: '{}'", track.titel);
-                let result = stmt.query_row(params![&track.titel], |row| {
-                    row.get::<_, String>(0)
+                let result = stmt.query_row(params![&track.index], |row| {
+                    Ok((
+                        row.get::<_, String>(0)?,  // Titel
+                        row.get::<_, String>(1)?,  // Künstler
+                        row.get::<_, String>(2)?   // Labelcode
+                    ))
                 });
     
                 match result {
-                    Ok(db_artist) => {
-                        // Replace spaces with underscores in the artist name
-                        let formatted_artist = db_artist.replace("  ", "_");
+                    Ok((db_title, db_kuenstler, db_labelcode)) => {
+                        // **Daten mit DB-Werten überschreiben**
+                        track.titel = db_title;
+                        track.kuenstler = db_kuenstler;
+                        track.label_code = db_labelcode;
+    
                         info!(
-                            "Track '{}' gefunden, Künstler von '{}' zu '{}' aktualisiert", 
-                            track.titel, 
-                            track.kuenstler, 
-                            formatted_artist
+                            "DB-Treffer: Titel='{}', Künstler='{}', Labelcode='{}'",
+                            track.titel, track.kuenstler, track.label_code
                         );
-                        track.kuenstler = formatted_artist;
                     }
                     Err(_) => {
                         info!(
-                            "Track '{}' nicht in der Datenbank gefunden, behalte Künstler '{}'", 
-                            track.titel, 
-                            track.kuenstler
+                            "Kein DB-Treffer für '{}', behalte ursprüngliche Werte.",
+                            track.index
                         );
                     }
                 }
+            
             }
         }
     }
