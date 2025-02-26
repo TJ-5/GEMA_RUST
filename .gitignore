@@ -1,6 +1,7 @@
 .DS_Store
 target/
 datenbank/
-"*db"
-"*xlsx"
-"*xlsb"
+*db
+*xlsx
+*xlsb
+*sql
