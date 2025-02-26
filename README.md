@@ -21,7 +21,7 @@ Launcher ausführen und den Anweisungen folgen.
 
 ### Anreicherung durch Datenbanken
 - **Labelcodes:** Eine JSON-Datenbank enthält zusätzliche Informationen zu Labelcodes. Diese werden bei Bedarf automatisch ergänzt und vereinheitlicht.
-- **Künstler:** Eine SQLite-Datenbank (.db) speichert erweiterte Informationen über Künstler, die ebenfalls automatisch angereichert werden können.
+- **Künstler:** Die SQL-Datenbank von A3M wird benutzt um den Labelcode, die Künstler und den Titel zufinden
 
 ### Dateiverwaltung
 - Aus einer Liste von Audiodateien lassen sich einzelne oder alle Dateien entfernen.
