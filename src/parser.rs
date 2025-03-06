@@ -3,24 +3,18 @@ use crate::app::GemaLauncherApp;
 use anyhow::Result;
 use log::{info, error};
 use regex::Regex;
-use std::fs::File; 
+use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::Path;
 
-/// Parst alle geladenen Dateien und füllt `tracks_per_file`.
 pub fn parse_all_files(app: &mut GemaLauncherApp) -> Result<()> {
     app.tracks_per_file.clear();
     app.error_messages.clear();
 
-    let re = Regex::new(r"^(?P<index>.*?_\d+_)(?P<titel>[A-Za-z_]+)_(?P<kuenstler>[^.]+)\.(wav|mp3)$").unwrap();
-
-    // Kopie der Dateinamen, um Borrowing-Konflikte zu vermeiden
     let filenames_clone = app.filenames.clone();
 
     for filename in filenames_clone {
         let path = Path::new(&filename);
-
-        // Falls es sich um eine .txt-Datei handelt, parse_text_file verwenden
         if path.extension().and_then(|s| s.to_str()) == Some("txt") {
             if let Err(e) = parse_text_file(app, &filename) {
                 let msg = format!("Fehler beim Parsen der Textdatei {}: {}", filename, e);
@@ -28,182 +22,173 @@ pub fn parse_all_files(app: &mut GemaLauncherApp) -> Result<()> {
                 error!("{}", msg);
             }
         } else {
-            // Für nicht-TXT Dateien nutzen wir das bekannte Schema:
-            let file_name = path.file_name().and_then(|s| s.to_str()).unwrap_or("").to_string();
-            if let Some(caps) = re.captures(&file_name) {
-                let index = caps.name("index").map_or("", |m| m.as_str()).to_string();
-                let titel = caps.name("titel").map_or("", |m| m.as_str()).to_string();
-                let kuenstler = caps.name("kuenstler").map_or("", |m| m.as_str()).to_string();
-                let label_code = find_label_code(&app.label_dict, &index);
-
-                let track = TrackInfo {
-                    index: index.clone(),
-                    titel,
-                    kuenstler,
-                    duration: None,
-                    label_code,
-                };
-
-                app.tracks_per_file.entry(filename.clone()).or_default().push(track);
-                info!("Track extrahiert aus {}: {}", filename, file_name);
-            } else {
-                let msg = format!("Unbekanntes Format: {}", file_name);
-                app.error_messages.push(msg.clone());
-                error!("{}", msg);
-            }
+            let msg = format!("Datei '{}' ist keine .txt und wird ignoriert.", filename);
+            app.error_messages.push(msg.clone());
+            error!("{}", msg);
         }
     }
 
     Ok(())
 }
 
-/// Parst eine Textdatei im neuen Format:
-///  - Erste Zeile IMMER überspringen.
-///  - Pro Zeile: Alles bis zum ersten ':' ignorieren.
-///  - Danach: Dauer-String bis zum nächsten '\t'.
-///  - Danach: Dateiname/Trackinfo (Index, Titel, Künstler) wie gewohnt parsen.
+/// Beispielhaftes Einlesen deiner TXT-Datei:
 fn parse_text_file(app: &mut GemaLauncherApp, path: &str) -> Result<()> {
     let file = File::open(path)?;
     let reader = io::BufReader::new(file);
-    let lines: Vec<String> = reader.lines().filter_map(Result::ok).collect();
 
-    if lines.len() <= 1 {
-        // Falls die Datei leer oder nur eine Zeile hat, gibt es nichts zu parsen.
-        app.error_messages.push(format!("Zu wenige Zeilen in '{}'", path));
-        return Ok(());
-    }
+    let mut lines_iter = reader.lines();
+    // 1. Zeile (Header) überspringen
+    lines_iter.next();
 
-    // Erste Zeile immer überspringen
-    for line in lines.iter().skip(1) {
-        // Suchen nach erstem Doppelpunkt
-        let Some(colon_pos) = line.find(':') else {
-            // Kein Doppelpunkt => Zeile ignorieren oder als Fehler protokollieren
-            let msg = format!("Kein ':' in Zeile, übersprungen: {}", line);
-            app.error_messages.push(msg.clone());
-            continue;
+    for line_result in lines_iter {
+        let line = match line_result {
+            Ok(l) => l,
+            Err(_) => continue,
         };
+        if line.trim().is_empty() {
+            continue;
+        }
 
-        // Alles nach dem Doppelpunkt
-        let after_colon = &line[colon_pos + 1..];
-
-        // Dauer bis zum nächsten Tab auslesen (splitn(2, '\t') trennt nur 1x)
-        let mut parts = after_colon.splitn(2, '\t');
-        let duration_str = parts.next().unwrap_or("").trim();
-        let track_str = parts.next().unwrap_or("").trim();
-
-        if duration_str.is_empty() || track_str.is_empty() {
-            let msg = format!("Zeile unvollständig (Dauer oder Track-Teil fehlt): {}", line);
+        // Zerlegen nach Tabs
+        let columns: Vec<&str> = line.split('\t').map(|s| s.trim()).collect();
+        if columns.len() < 3 {
+            let msg = format!("Unerwartetes Zeilenformat (weniger als 3 Spalten): {}", line);
             app.error_messages.push(msg.clone());
             continue;
         }
 
-        let duration_in_seconds = parse_duration(duration_str);
-        let Some(duration) = duration_in_seconds else {
-            let msg = format!("Ungültige Dauer '{}' in Zeile '{}'", duration_str, line);
+        let duration_str = columns[1];
+        let track_str = columns[2];
+
+        let Some(duration_in_seconds) = parse_hh_mm_ss_frames(duration_str) else {
+            let msg = format!("Konnte Dauer '{}' nicht parsen: {}", duration_str, line);
             app.error_messages.push(msg.clone());
             continue;
         };
 
+        // Aus dem Dateinamen index/titel/kuenstler holen
         let (index, titel, kuenstler) = parse_track_filename(track_str);
+
         let label_code = find_label_code(&app.label_dict, &index);
 
         let tracks = app.tracks_per_file.entry(path.to_string()).or_default();
         if let Some(existing_track) = tracks.iter_mut().find(|t| {
             t.index == index && t.titel == titel && t.kuenstler == kuenstler
         }) {
-            existing_track.duration = Some(existing_track.duration.unwrap_or(0.0) + duration);
+            existing_track.duration = Some(existing_track.duration.unwrap_or(0.0) + duration_in_seconds);
             info!("Track aktualisiert (Dauer addiert): {} {} {}", index, titel, kuenstler);
         } else {
+            // Erst loggen, dann verschieben (um Move-Fehler zu vermeiden)
+            info!("Neuer Track geparst: {} {} {}", index, titel, kuenstler);
+
             tracks.push(TrackInfo {
                 index,
                 titel,
                 kuenstler,
-                duration: Some(duration),
+                duration: Some(duration_in_seconds),
                 label_code,
             });
-            info!("Neuer Track eingelesen: {}", track_str);
         }
     }
+
     Ok(())
 }
 
-/// Zerlegt den Filename in Index, Titel und Künstler
+/// Parsen von "ANW1832_001_Forgotten-Dreams.wav.new.01"
+///  1) cut alles hinter .wav/.mp3
+///  2) cut .wav/.mp3 selbst weg
+///  3) split_index_and_rest => (index_part, rest_part)
+///  4) Letzten Unterstrich vom index weg, falls vorhanden
+///  5) Titel + Künstler aufsplitten
 fn parse_track_filename(filename: &str) -> (String, String, String) {
-    let original_base = filename.split('.').next().unwrap_or("");
-    let base = original_base.replace('_', " ");
-    let tokens = base.split_whitespace().collect::<Vec<&str>>();
+    // 1) Alles hinter .wav / .mp3 weg
+    let base_with_ext = strip_version(filename);
 
-    fn contains_digit(t: &str) -> bool {
-        t.chars().any(|ch| ch.is_ascii_digit())
+    // 2) .wav / .mp3 entfernen
+    let base_no_ext = match base_with_ext.rsplit_once('.') {
+        Some((b, _ext)) => b,
+        None => base_with_ext,
+    };
+
+    // 3) Bis zu 2 "_123_"-Blöcke rausholen
+    let (mut index_part, rest_part) = match split_index_and_rest(base_no_ext) {
+        Some(t) => t,
+        None => (base_no_ext.to_string(), "".to_string()),
+    };
+
+    // 4) Wenn index_part mit '_' endet, abschneiden
+    if index_part.ends_with('_') {
+        index_part.pop(); // entfernt das letzte Zeichen
     }
 
-    fn is_upper_token(t: &str) -> bool {
-        t.chars().filter(|c| c.is_alphabetic()).all(|c| c.is_uppercase())
-            && t.chars().any(|c| c.is_alphabetic())
-    }
+    // 5) rest_part in titel + kuenstler zerlegen
+    let (titel, kuenstler) = split_title_and_artist(rest_part);
 
-    let mut state = "BEFORE_DIGIT";
-    let mut index_tokens = Vec::new();
-    let mut title_tokens = Vec::new();
-    let mut artist_tokens = Vec::new();
-
-    for t in tokens {
-        match state {
-            "BEFORE_DIGIT" => {
-                index_tokens.push(t);
-                if contains_digit(t) {
-                    state = "AFTER_DIGIT_BEFORE_TITLE";
-                }
-            }
-            "AFTER_DIGIT_BEFORE_TITLE" => {
-                if is_upper_token(t) {
-                    title_tokens.push(t);
-                    state = "TITLE";
-                } else {
-                    index_tokens.push(t);
-                }
-            }
-            "TITLE" => {
-                if is_upper_token(t) {
-                    title_tokens.push(t);
-                } else {
-                    artist_tokens.push(t);
-                    state = "ARTIST";
-                }
-            }
-            "ARTIST" => {
-                artist_tokens.push(t);
-            }
-            _ => {}
-        }
-    }
-
-    let index_str = index_tokens.join("_").to_lowercase();
-    let title_str = title_tokens.join(" ").to_lowercase();
-    let artist_str = artist_tokens.join(" ").to_lowercase();
-
-    (index_str, title_str, artist_str)
+    // in Kleinschreibung
+    (
+        index_part.to_lowercase(),
+        titel.to_lowercase(),
+        kuenstler.to_lowercase(),
+    )
 }
 
-/// Konvertiert eine Zeitangabe (z. B. "1:23" oder "1.23") in Sekunden (f64).
-fn parse_duration(duration_str: &str) -> Option<f64> {
-    let duration_str = duration_str.replace(':', ".");
-    let parts: Vec<&str> = duration_str.split('.').collect();
+/// Schneidet alles nach ".wav" oder ".mp3" ab, z.B. ".wav.new.01"
+fn strip_version(filename: &str) -> &str {
+    let lower = filename.to_lowercase();
+    if let Some(pos) = lower.rfind(".mp3") {
+        &filename[..pos + 4]
+    } else if let Some(pos) = lower.rfind(".wav") {
+        &filename[..pos + 4]
+    } else {
+        filename
+    }
+}
 
-    if parts.len() < 2 {
+/// Regex, um bis zu 2 `_Ziffern_`-Blöcke als "index" zu erkennen
+fn split_index_and_rest(base: &str) -> Option<(String, String)> {
+    let re = Regex::new(r"^(?P<index>.*?_\d+_(?:\d+_)?)(?P<rest>.*)$").unwrap();
+    re.captures(base).map(|caps| {
+        let index_str = caps["index"].to_string();
+        let rest_str  = caps["rest"].to_string();
+        (index_str, rest_str)
+    })
+}
+
+/// Wir teilen "Heroes_Remembered___Beck_Gilmartin" am letzten Unterstrich
+fn split_title_and_artist(rest: String) -> (String, String) {
+    if rest.is_empty() {
+        return ("".to_string(), "".to_string());
+    }
+    let tokens = rest.split('_').collect::<Vec<_>>();
+    if tokens.len() == 1 {
+        (tokens[0].to_string(), "".to_string())
+    } else {
+        let title = tokens[..(tokens.len() - 1)].join("_");
+        let artist = tokens[tokens.len() - 1];
+        (title, artist.to_string())
+    }
+}
+
+/// Parst die Dauer "00:00:43:12" (HH:MM:SS:Frames, 25 fps als Beispiel)
+fn parse_hh_mm_ss_frames(dur: &str) -> Option<f64> {
+    let parts: Vec<&str> = dur.split(':').collect();
+    if parts.len() != 4 {
         return None;
     }
+    let hh = parts[0].parse::<u64>().ok()?;
+    let mm = parts[1].parse::<u64>().ok()?;
+    let ss = parts[2].parse::<u64>().ok()?;
+    let frames = parts[3].parse::<u64>().ok()?;
 
-    let main_part = parts[0];
-    let decimal_part = parts[1];
-
-    format!("{}.{}", main_part, decimal_part).parse::<f64>().ok()
+    let fps = 25.0;
+    let total_seconds = (hh * 3600 + mm * 60 + ss) as f64 + frames as f64 / fps;
+    Some(total_seconds)
 }
 
-/// Ermittelt anhand des Index (z.B. "JCM_123") den passenden Labelcode aus dem Dict.
+/// Liest label_code basierend auf dem index-Str (z.B. "ANW", "BMGPM", etc.)
 fn find_label_code(label_dict: &std::collections::HashMap<String, String>, index_str: &str) -> String {
     for (label, code) in label_dict {
-        if index_str.to_uppercase().starts_with(label) {
+        if index_str.to_uppercase().starts_with(&label.to_uppercase()) {
             return code.clone();
         }
     }
