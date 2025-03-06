@@ -11,7 +11,8 @@ pub fn load_labelcodes(path: &str) -> Result<HashMap<String, String>> {
         return Ok(HashMap::new());
     }
 
-    let file = File::open(path).with_context(|| format!("Kann Labelcodes-Datei '{}' nicht öffnen.", path))?;
+    let file = File::open(path)
+        .with_context(|| format!("Kann Labelcodes-Datei '{}' nicht öffnen.", path))?;
     let reader = BufReader::new(file);
 
     let label_dict: HashMap<String, String> = match serde_json::from_reader(reader) {

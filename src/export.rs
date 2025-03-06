@@ -7,7 +7,6 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 use rfd::FileDialog;
 
-
 impl GemaLauncherApp {
     pub fn export_all_csv(&mut self) -> Result<()> {
         if self.tracks_per_file.is_empty() {
@@ -55,14 +54,17 @@ impl GemaLauncherApp {
                     // CSV Daten
                     for track in tracks {
                         let duration = track.duration.map_or(String::new(), |d| self.format_duration(d));
+                        // Verhindert, dass Excel die Zeit verschluckt. Z.B. "' 12:34" 
                         let formatted_duration = format!("' {}", duration);
-                        if let Err(e) = writeln!(f, "{},{},{},{},{}",
+                        if let Err(e) = writeln!(
+                            f,
+                            "{},{},{},{},{}",
                             track.index,
                             track.titel,
                             track.kuenstler,
-                            //track.kuenstler,
                             formatted_duration,
-                            track.label_code) {
+                            track.label_code
+                        ) {
                             let error_msg = format!("CSV-Fehler: {}", e);
                             self.error_messages.push(error_msg.clone());
                             error!("{}", error_msg);

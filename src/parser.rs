@@ -3,8 +3,8 @@ use crate::app::GemaLauncherApp;
 use anyhow::Result;
 use log::{info, error};
 use regex::Regex;
+use std::fs::File; 
 use std::io::{self, BufRead};
-use std::fs::File;
 use std::path::Path;
 
 /// Parst alle geladenen Dateien und füllt `tracks_per_file`.
@@ -12,21 +12,23 @@ pub fn parse_all_files(app: &mut GemaLauncherApp) -> Result<()> {
     app.tracks_per_file.clear();
     app.error_messages.clear();
 
-    let re = Regex::new(r"^(?P<index>.*?)(?P<titel>[A-Z_]+)_(?P<kuenstler>[^.]+)\.(wav|mp3)$").unwrap();
-    
-    // Dateinamen klonen, um Borrowing-Konflikte zu vermeiden
+    let re = Regex::new(r"^(?P<index>.*?_\d+_)(?P<titel>[A-Za-z_]+)_(?P<kuenstler>[^.]+)\.(wav|mp3)$").unwrap();
+
+    // Kopie der Dateinamen, um Borrowing-Konflikte zu vermeiden
     let filenames_clone = app.filenames.clone();
 
     for filename in filenames_clone {
         let path = Path::new(&filename);
+
+        // Falls es sich um eine .txt-Datei handelt, parse_text_file verwenden
         if path.extension().and_then(|s| s.to_str()) == Some("txt") {
-            // Hier übergeben wir &mut app, aber benutzen filename aus der Kopie
             if let Err(e) = parse_text_file(app, &filename) {
                 let msg = format!("Fehler beim Parsen der Textdatei {}: {}", filename, e);
                 app.error_messages.push(msg.clone());
                 error!("{}", msg);
             }
         } else {
+            // Für nicht-TXT Dateien nutzen wir das bekannte Schema:
             let file_name = path.file_name().and_then(|s| s.to_str()).unwrap_or("").to_string();
             if let Some(caps) = re.captures(&file_name) {
                 let index = caps.name("index").map_or("", |m| m.as_str()).to_string();
@@ -42,7 +44,6 @@ pub fn parse_all_files(app: &mut GemaLauncherApp) -> Result<()> {
                     label_code,
                 };
 
-                // Hier kann nun mutabel auf app zugegriffen werden, weil wir nicht mehr über &app.filenames iterieren
                 app.tracks_per_file.entry(filename.clone()).or_default().push(track);
                 info!("Track extrahiert aus {}: {}", filename, file_name);
             } else {
@@ -56,69 +57,62 @@ pub fn parse_all_files(app: &mut GemaLauncherApp) -> Result<()> {
     Ok(())
 }
 
-/// Parst eine Textdatei und extrahiert Tracks/Dauern.
+/// Parst eine Textdatei im neuen Format:
+///  - Erste Zeile IMMER überspringen.
+///  - Pro Zeile: Alles bis zum ersten ':' ignorieren.
+///  - Danach: Dauer-String bis zum nächsten '\t'.
+///  - Danach: Dateiname/Trackinfo (Index, Titel, Künstler) wie gewohnt parsen.
 fn parse_text_file(app: &mut GemaLauncherApp, path: &str) -> Result<()> {
     let file = File::open(path)?;
     let reader = io::BufReader::new(file);
-    let lines = reader.lines().filter_map(Result::ok).collect::<Vec<String>>();
+    let lines: Vec<String> = reader.lines().filter_map(Result::ok).collect();
 
-    if lines.is_empty() {
-        app.error_messages.push(format!("Leere Textdatei: {}", path));
+    if lines.len() <= 1 {
+        // Falls die Datei leer oder nur eine Zeile hat, gibt es nichts zu parsen.
+        app.error_messages.push(format!("Zu wenige Zeilen in '{}'", path));
         return Ok(());
     }
 
-    let is_alternating = lines.len() % 2 == 0 && lines.iter().enumerate().all(|(i, line)| {
-        if i % 2 == 1 {
-            line.contains(':')
-        } else {
-            true
-        }
-    });
-
-    let mut track_duration_pairs = Vec::new();
-
-    if is_alternating {
-        for i in (0..lines.len()).step_by(2) {
-            let track = lines[i].trim().to_string();
-            let duration = lines[i + 1].trim().to_string();
-            track_duration_pairs.push((track, duration));
-        }
-    } else {
-        let half = lines.len() / 2;
-        let tracks = &lines[..half];
-        let durations = &lines[half..];
-
-        if tracks.len() != durations.len() {
-            app.error_messages.push(format!(
-                "Die Anzahl der Tracks und Dauern stimmt nicht überein in Datei: {}",
-                path
-            ));
-            return Ok(());
-        }
-
-        for (track, duration) in tracks.iter().zip(durations.iter()) {
-            track_duration_pairs.push((track.trim().to_string(), duration.trim().to_string()));
-        }
-    }
-
-    for (track, duration_str) in track_duration_pairs {
-        let (index, titel, kuenstler) = parse_track_filename(&track);
-        let duration_in_seconds = parse_duration(&duration_str);
-
-        if duration_in_seconds.is_none() {
-            let msg = format!("Ungültige Dauer '{}' für Track '{}'", duration_str, track);
+    // Erste Zeile immer überspringen
+    for line in lines.iter().skip(1) {
+        // Suchen nach erstem Doppelpunkt
+        let Some(colon_pos) = line.find(':') else {
+            // Kein Doppelpunkt => Zeile ignorieren oder als Fehler protokollieren
+            let msg = format!("Kein ':' in Zeile, übersprungen: {}", line);
             app.error_messages.push(msg.clone());
-            error!("{}", msg);
+            continue;
+        };
+
+        // Alles nach dem Doppelpunkt
+        let after_colon = &line[colon_pos + 1..];
+
+        // Dauer bis zum nächsten Tab auslesen (splitn(2, '\t') trennt nur 1x)
+        let mut parts = after_colon.splitn(2, '\t');
+        let duration_str = parts.next().unwrap_or("").trim();
+        let track_str = parts.next().unwrap_or("").trim();
+
+        if duration_str.is_empty() || track_str.is_empty() {
+            let msg = format!("Zeile unvollständig (Dauer oder Track-Teil fehlt): {}", line);
+            app.error_messages.push(msg.clone());
             continue;
         }
 
-        let duration = duration_in_seconds.unwrap();
+        let duration_in_seconds = parse_duration(duration_str);
+        let Some(duration) = duration_in_seconds else {
+            let msg = format!("Ungültige Dauer '{}' in Zeile '{}'", duration_str, line);
+            app.error_messages.push(msg.clone());
+            continue;
+        };
+
+        let (index, titel, kuenstler) = parse_track_filename(track_str);
         let label_code = find_label_code(&app.label_dict, &index);
 
         let tracks = app.tracks_per_file.entry(path.to_string()).or_default();
-        if let Some(existing_track) = tracks.iter_mut().find(|t| t.index == index && t.titel == titel && t.kuenstler == kuenstler) {
+        if let Some(existing_track) = tracks.iter_mut().find(|t| {
+            t.index == index && t.titel == titel && t.kuenstler == kuenstler
+        }) {
             existing_track.duration = Some(existing_track.duration.unwrap_or(0.0) + duration);
-            info!("Track aktualisiert: {} {} {}", index, titel, kuenstler);
+            info!("Track aktualisiert (Dauer addiert): {} {} {}", index, titel, kuenstler);
         } else {
             tracks.push(TrackInfo {
                 index,
@@ -127,12 +121,13 @@ fn parse_text_file(app: &mut GemaLauncherApp, path: &str) -> Result<()> {
                 duration: Some(duration),
                 label_code,
             });
+            info!("Neuer Track eingelesen: {}", track_str);
         }
     }
     Ok(())
 }
 
-/// Hilfsfunktionen
+/// Zerlegt den Filename in Index, Titel und Künstler
 fn parse_track_filename(filename: &str) -> (String, String, String) {
     let original_base = filename.split('.').next().unwrap_or("");
     let base = original_base.replace('_', " ");
@@ -143,7 +138,8 @@ fn parse_track_filename(filename: &str) -> (String, String, String) {
     }
 
     fn is_upper_token(t: &str) -> bool {
-        t.chars().filter(|c| c.is_alphabetic()).all(|c| c.is_uppercase()) && t.chars().any(|c| c.is_alphabetic())
+        t.chars().filter(|c| c.is_alphabetic()).all(|c| c.is_uppercase())
+            && t.chars().any(|c| c.is_alphabetic())
     }
 
     let mut state = "BEFORE_DIGIT";
@@ -189,7 +185,7 @@ fn parse_track_filename(filename: &str) -> (String, String, String) {
     (index_str, title_str, artist_str)
 }
 
-
+/// Konvertiert eine Zeitangabe (z. B. "1:23" oder "1.23") in Sekunden (f64).
 fn parse_duration(duration_str: &str) -> Option<f64> {
     let duration_str = duration_str.replace(':', ".");
     let parts: Vec<&str> = duration_str.split('.').collect();
@@ -204,6 +200,7 @@ fn parse_duration(duration_str: &str) -> Option<f64> {
     format!("{}.{}", main_part, decimal_part).parse::<f64>().ok()
 }
 
+/// Ermittelt anhand des Index (z.B. "JCM_123") den passenden Labelcode aus dem Dict.
 fn find_label_code(label_dict: &std::collections::HashMap<String, String>, index_str: &str) -> String {
     for (label, code) in label_dict {
         if index_str.to_uppercase().starts_with(label) {
@@ -212,4 +209,3 @@ fn find_label_code(label_dict: &std::collections::HashMap<String, String>, index
     }
     String::new()
 }
-

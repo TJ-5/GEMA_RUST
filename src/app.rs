@@ -96,7 +96,7 @@ impl GemaLauncherApp {
         Ok(())
     }
     
-
+    /// Sucht in der Datenbank nach passender Zeile (passend zum Index) und überschreibt Titel/Künstler/Labelcode, falls gefunden.
     fn apply_database_info(&mut self) {
         let Some(conn) = self.db_connection.as_ref() else {
             info!("Keine Datenbankverbindung vorhanden. Überspringe apply_database_info().");
@@ -113,7 +113,8 @@ impl GemaLauncherApp {
     
         let mut stmt = match conn.prepare(query) {
             Ok(s) => {
-                info!("Abfrage vorbereitet."); s
+                info!("Abfrage vorbereitet.");
+                s
             },
             Err(e) => {
                 info!("Fehler beim Vorbereiten der Abfrage: {}", e);
@@ -127,9 +128,9 @@ impl GemaLauncherApp {
                 info!("Attempting to match track: '{}'", track.titel);
                 let result = stmt.query_row(params![&track.index], |row| {
                     Ok((
-                        row.get::<_, String>(1)?,  // Titel
-                        row.get::<_, String>(0)?,  // Künstler
-                        row.get::<_, String>(2)?   // Labelcode
+                        row.get::<_, String>(1)?, // Titel
+                        row.get::<_, String>(0)?, // Künstler
+                        row.get::<_, String>(2)?, // Labelcode
                     ))
                 });
     
@@ -152,7 +153,6 @@ impl GemaLauncherApp {
                         );
                     }
                 }
-            
             }
         }
     }

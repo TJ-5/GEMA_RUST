@@ -12,10 +12,8 @@ mod labelcodes;
 mod export;
 
 fn main() -> Result<()> {
-
     env_logger::init();
     info!("GEMA_Launcher startet");
-
 
     //src weg machen im path
     let image = image::open("src/assets/logo.png").expect("Kann 'logo.png' nicht öffnen");

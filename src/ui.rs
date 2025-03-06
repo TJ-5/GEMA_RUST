@@ -6,7 +6,6 @@ use rfd::FileDialog;
 use eframe::App;
 use webbrowser;
 
-
 impl App for GemaLauncherApp {
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
         let dropped_files = ctx.input(|input| input.raw.dropped_files.clone());
@@ -29,14 +28,14 @@ impl App for GemaLauncherApp {
                         let _ = self.export_all_csv();
                     }
 
-                    if ui.button("Beenden").clicked() { 
-                        frame.close()
+                    if ui.button("Beenden").clicked() {
+                        frame.close();
                     }
                 });
 
                 ui.menu_button("Hilfe", |ui| {
                     if ui.button("Welcome").clicked() {
-                        let _ = webbrowser::open("https://github.com/TJ-5/GEMA_RUST/blob/main/README.pdf"); 
+                        let _ = webbrowser::open("https://github.com/TJ-5/GEMA_RUST/blob/main/README.pdf");
                     }
                     if ui.button("Mail").clicked() {
                         #[cfg(target_os = "windows")]
@@ -115,7 +114,6 @@ impl App for GemaLauncherApp {
             if ui.button("Export").clicked() {
                 let _ = self.export_all_csv();
             }
-
         });
 
         // Hauptbereich
