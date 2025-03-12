@@ -8,6 +8,11 @@ use webbrowser;
 
 impl App for GemaLauncherApp {
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
+        
+        if ctx.input(|i| i.key_pressed(egui::Key::Enter)) {
+            let _ = self.export_all_csv();
+        }
+        
         let dropped_files = ctx.input(|input| input.raw.dropped_files.clone());
 
         if !dropped_files.is_empty() {
@@ -59,6 +64,7 @@ impl App for GemaLauncherApp {
 
         // Seitenleiste für Aktionen
         egui::SidePanel::left("side_panel").resizable(true).show(ctx, |ui| {
+            ui.add_space(5.0);
             ui.add_space(5.0);
             ui.heading("Aktionen");
             ui.add_space(5.0);
