@@ -5,7 +5,9 @@ use std::collections::HashMap;
 use crate::labelcodes::load_labelcodes;
 use crate::model::TrackInfo;
 
+
 pub struct GemaLauncherApp {
+    // Bestehende Felder
     pub filenames: Vec<String>,
     pub error_messages: Vec<String>,
     pub label_dict: HashMap<String, String>,
@@ -13,11 +15,35 @@ pub struct GemaLauncherApp {
     pub tracks_per_file: HashMap<String, Vec<TrackInfo>>,
     pub export_path: Option<String>,
     pub db_connection: Option<Connection>,
+    
+    // Neue Felder für UI
+    pub show_csv_preview: bool,
+    pub selected_csv_file: Option<String>,
+    pub show_db_update_dialog: bool,
+    pub show_db_search_dialog: bool,
+    pub track_search_query: String,
+    
+    // Felder für Datenbank-Aktualisierung
+    pub db_update_index: String,
+    pub db_update_title: String,
+    pub db_update_artist: String,
+    pub db_update_labelcode: String,
+    pub db_update_status: String,
+    
+    // Felder für Datenbank-Suche
+    pub db_search_query: String,
+    pub db_search_results: Vec<(String, String, String, String)>, // (index, title, artist, labelcode)
+    pub db_search_in_index: bool,
+    pub db_search_in_title: bool,
+    pub db_search_in_artist: bool,
+    pub db_search_in_labelcode: bool,
 }
 
+// In der Default-Implementation diese Felder initialisieren
 impl Default for GemaLauncherApp {
     fn default() -> Self {
         let mut app = Self {
+            // Bestehende Felder
             filenames: Vec::new(),
             error_messages: Vec::new(),
             label_dict: load_labelcodes("src/assets/labelcodes.json").unwrap_or_default(),
@@ -25,6 +51,26 @@ impl Default for GemaLauncherApp {
             tracks_per_file: HashMap::new(),
             export_path: None,
             db_connection: None,
+            
+            // Neue Felder initialisieren
+            show_csv_preview: false,
+            selected_csv_file: None,
+            show_db_update_dialog: false,
+            show_db_search_dialog: false,
+            track_search_query: String::new(),
+            
+            db_update_index: String::new(),
+            db_update_title: String::new(),
+            db_update_artist: String::new(),
+            db_update_labelcode: String::new(),
+            db_update_status: String::new(),
+            
+            db_search_query: String::new(),
+            db_search_results: Vec::new(),
+            db_search_in_index: true,
+            db_search_in_title: true,
+            db_search_in_artist: true,
+            db_search_in_labelcode: true,
         };
 
         if let Err(e) = app.connect_to_database("src/assets/databank.db") {
