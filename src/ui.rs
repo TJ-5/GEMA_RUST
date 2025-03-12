@@ -33,6 +33,42 @@ impl App for GemaLauncherApp {
                     if ui.button("Exportieren").clicked() {
                         let _ = self.export_all_csv();
                     }
+                    ui.menu_button("Datenbank", |ui| {
+                        // Bestehende Buttons
+                        if ui.button("Datensatz aktualisieren").clicked() {
+                            self.show_db_update_dialog = true;
+                        }
+                        if ui.button("Datenbank durchsuchen").clicked() {
+                            self.show_db_search_dialog = true;
+                            self.db_search_results.clear();
+                        }
+                        
+                        // HIER DIE NEUEN EINTRÄGE EINFÜGEN:
+                        ui.separator();
+                        if ui.button("Datenbank optimieren").clicked() {
+                            if let Err(e) = self.analyze_database() {
+                                self.error_messages.push(format!("Fehler bei Datenbankoptimierung: {}", e));
+                            } else {
+                                rfd::MessageDialog::new()
+                                    .set_title("Erfolg")
+                                    .set_description("Datenbank wurde erfolgreich optimiert.")
+                                    .set_buttons(rfd::MessageButtons::Ok)
+                                    .show();
+                            }
+                        }
+                        
+                        if ui.button("Datenbank komprimieren").clicked() {
+                            if let Err(e) = self.vacuum_database() {
+                                self.error_messages.push(format!("Fehler bei Datenbankkomprimierung: {}", e));
+                            } else {
+                                rfd::MessageDialog::new()
+                                    .set_title("Erfolg")
+                                    .set_description("Datenbank wurde erfolgreich komprimiert.")
+                                    .set_buttons(rfd::MessageButtons::Ok)
+                                    .show();
+                            }
+                        }
+                    });
 
                     if ui.button("CSV Vorschau").clicked() {
                         self.show_csv_preview = !self.show_csv_preview;

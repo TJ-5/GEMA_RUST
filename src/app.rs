@@ -83,8 +83,25 @@ impl Default for GemaLauncherApp {
 impl GemaLauncherApp {
     fn connect_to_database(&mut self, path: &str) -> Result<()> {
         let conn = Connection::open(path)?;
+        
+        // SQLite-Optimierungen direkt anwenden
+        conn.execute_batch("
+            PRAGMA journal_mode = WAL;
+            PRAGMA synchronous = NORMAL;
+            PRAGMA cache_size = 10000;
+            PRAGMA temp_store = MEMORY;
+        ")?;
+        
+        // Indizes erstellen (falls noch nicht vorhanden)
+        conn.execute_batch("
+            CREATE INDEX IF NOT EXISTS idx_index ON my_table(\"index\" COLLATE NOCASE);
+            CREATE INDEX IF NOT EXISTS idx_title ON my_table(titel COLLATE NOCASE);
+            CREATE INDEX IF NOT EXISTS idx_artist ON my_table(kuenstler COLLATE NOCASE);
+            CREATE INDEX IF NOT EXISTS idx_labelcode ON my_table(labelcode COLLATE NOCASE);
+        ")?;
+        
         self.db_connection = Some(conn);
-        info!("Verbindung zur SQLite-Datenbank hergestellt.");
+        info!("Optimierte Verbindung zur SQLite-Datenbank hergestellt.");
         Ok(())
     }
 
@@ -96,6 +113,26 @@ impl GemaLauncherApp {
             info!("Datei hinzugefügt: {}", path);
         } else {
             info!("Datei bereits in der Liste: {}", path);
+        }
+    }
+
+    pub fn vacuum_database(&mut self) -> Result<()> {
+        if let Some(conn) = &self.db_connection {
+            conn.execute_batch("VACUUM;")?;
+            info!("Datenbank-Vakuumierung abgeschlossen.");
+            Ok(())
+        } else {
+            Err(anyhow::anyhow!("Keine Datenbankverbindung vorhanden"))
+        }
+    }
+
+    pub fn analyze_database(&mut self) -> Result<()> {
+        if let Some(conn) = &self.db_connection {
+            conn.execute_batch("ANALYZE;")?;
+            info!("Datenbank-Analyse abgeschlossen.");
+            Ok(())
+        } else {
+            Err(anyhow::anyhow!("Keine Datenbankverbindung vorhanden"))
         }
     }
 
